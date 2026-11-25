@@ -1,6 +1,6 @@
 # DrumKey
 
-DrumKey is a macOS menu bar app that turns D, F, J, K, L and Space into an ambient rhythm display. A vertical 192 × 252 point glass overlay starts in the top-left of a secondary display, or the main display when only one is connected. Click and drag anywhere on it to move it. Its circular soundstage is 167.2 points across, 10% wider than the previous stage.
+DrumKey is a macOS menu bar app that turns D, F, J, K, L and Space into an ambient rhythm display. A vertical glass overlay starts at 192 × 252 points in the top-left of a secondary display, or the main display when only one is connected. Click and drag anywhere on it to move it. Size presets enlarge the panel and circle while keeping the meter and BPM text the same size.
 
 ## Build and launch
 
@@ -28,7 +28,10 @@ Command–W closes Settings and leaves the overlay running.
 
 - **Enable DrumKey** starts the listener and displays the HUD. Disable it to pause both.
 - **Control + Option + Command + D** toggles DrumKey globally when that shortcut is available.
+- **Visual theme** switches live between Glass Circle, Pulse Halo, Radial Spectrum, Linear EQ, Mirror Wave, Orbit Dots and LED Matrix.
+- **Color scheme** independently selects Classic, Aurora, Sunset, Neon, Ocean, Ember or Gunmetal. Theme and color choices are remembered.
 - **Display** selects an available monitor or automatic secondary-display preference.
+- **Overlay size** selects 1×, 1.5×, 2× or 3×. The panel fits inside the chosen display and remembers the size. Meter text stays at 22 points and BPM/status stays at 11 points.
 - **Visibility** adjusts the faint overlay while retaining a visible minimum.
 - **EQ transparency** adjusts the background spectrum separately, starting at 92% transparent. Higher values make it fainter; 100% hides it. The preference survives a restart.
 - **Preview a rhythm** runs a short visual example through the same soundstage and analyzer. A real tap takes over when capture is enabled.
@@ -42,27 +45,37 @@ Drag the overlay by its text, glass background or soundstage. Its position is re
 
 ## Visual feedback
 
+The following regions describe Glass Circle with Classic colors. Other layouts preserve the key roles with their own shapes and selected palette.
+
 | Input | Visual region | Analysis role |
 | --- | --- | --- |
-| D / F | Indigo upper-left and blue lower-left bass groups | Hit timing and recurring key patterns |
-| D + F together | Blue-violet flash around the overlay border | Visual recognition of a joint bass hit |
-| J / K | Orange upper-right and pink lower-right percussion groups | Hit timing and recurring key patterns |
+| D / F | Six alternating indigo and blue columns on the left | Hit timing and recurring key patterns |
+| D + F together | Deep gunmetal blue flash around the overlay border | Visual recognition of a joint bass hit |
+| J / K | Six alternating orange and pink columns on the right, plus left/right border meters | Hit timing and recurring key patterns |
 | Space | Mint light around the complete rim | Explicit accent or downbeat hint |
-| L | Four teal accent bars between color groups | Manual visual accent, outside rhythm analysis |
+| L | Four wider teal accent columns at north, south, east and west | Manual visual accent, outside rhythm analysis |
 
-Sixteen translucent glass columns sit around an open circular center. D/F occupy the left side and J/K occupy the right. Each three-bar color group has a narrower teal accent bar beside it, with the four accent bars at the top, left, bottom and right. The glass projection remains mirrored horizontally. Block centers and circular flashes share one origin, accounting for the height and depth of the projected glass.
+Sixteen translucent glass columns sit around an open circular center. The left side alternates D, F, D, F, D, F from top to bottom; the right alternates J, K, J, K, J, K. Four wider L accents sit at the cardinal points. The glass projection remains mirrored horizontally, and projected columns and rims share one center at every size.
 
-Hits have an immediate 12 point lift and up to seven points of extra height, returning within the existing 360 ms response. Layered ripples spread around each struck group and across the center of the stage. Reduce Motion uses brightness feedback. The instrument-like regions express the tapping pattern, and key identity alone provides limited information about musical intent.
+Column bases stay fixed. A hit immediately extends the top, which gradually falls toward its resting height. Each new hit adds to the remaining height instead of starting another jump. Key energy is capped, with up to 24 points of extension at 1× and a 0.70-second exponential release. The height scales with the circle. Spreading ripples have been removed, and Reduce Motion uses brightness feedback with stationary columns. The instrument-like regions express the tapping pattern, and key identity alone provides limited information about musical intent.
 
-Bass columns are 35% wider at rest and gain another 20% width during a hit. Stronger glass faces, thicker highlights and bolder ripples give their travel more weight.
+Bass columns are 35% wider, with stronger glass faces and thicker highlights. Their width stays fixed during a hit. The four L accents are 19 points wide at 1×.
 
-Press D and F together to flash the rounded border of the entire overlay. Presses within 80 milliseconds count as a pair. Each pair produces a single flare that fades within 360 milliseconds; holding the keys does not continue flashing. Reduce Motion uses a gentler border pulse. The rhythm preview includes joint bass hits so the effect can be checked from Settings.
+Six additional layouts share this same additive key energy: a contoured open halo, an outward radial spectrum, upright EQ bars, a mirrored horizontal wave, connected orbit beads and a segmented LED matrix. The layout and color pickers update the overlay without resetting its current animation. [THEMES.md](THEMES.md) describes every option and links the six visualizer projects researched for this update.
+
+The three radial alternatives use amplified travel and bolder highlights: Pulse Halo has pronounced peaks, Radial Spectrum has longer spokes, and Orbit Dots kicks its beads outward along anchored stems. They retain the same gradual fall and additive retriggers as Glass Circle. Their peaks fit below the fixed text and inside the panel at each size.
+
+Their key regions form a mirrored sweep: D drives broad upper crests, F the outer upper shoulders, J the sidewalls, K the lower shoulders and L finer peaks along the lower edge. Every key responds on both sides together. Smoothly overlapping fields and blended colors keep combinations balanced. Orbit Dots uses twenty beads linked around an open center. Glass Circle retains the alternating hand layout described above. See [the radial mapping analysis](THEMES.md#radial-key-composition) for the placement rationale and research sources.
+
+Press D and F together to flash the rounded border in deep gunmetal blue. Presses within 80 milliseconds count as a pair. Each pair produces a single flare that fades within 360 milliseconds; holding the keys does not continue flashing. Reduce Motion uses a gentler border pulse. The rhythm preview includes joint bass hits so the effect can be checked from Settings.
+
+J raises a segmented meter on the left border and K raises one on the right, alongside their circle feedback. A single tap starts at 8% of the panel height. Repeated taps build the peak over a rolling 30 seconds; roughly two taps per second on a key for thirty seconds earns the maximum 60% height. Short bursts cannot skip the buildup, and each rise releases within 220 milliseconds. A gap over three seconds restarts that lane's buildup. Reduce Motion uses fixed-height tracks with brightness feedback.
 
 Press L to trigger all four teal bars together manually. Their former beat automation has been removed. L remains outside tempo and meter analysis.
 
-A faint EQ theme stretches across the entire overlay behind the circle and text. Forty thin stems follow the same D, F, J, K, L and Space hits: bass emphasizes the left, percussion the right, L the high bands and Space the full spectrum. Green rises through yellow and orange to red near the top of the overlay; strong combined or repeated hits occasionally reach those red peaks. The spectrum describes key-driven visual energy rather than measured audio frequencies.
+A faint EQ theme stretches across the entire overlay behind the selected visualizer and text. Forty thin stems follow the same D, F, J, K, L and Space hits: bass emphasizes the left, percussion the right, L the high bands and Space the full spectrum. In Classic colors, green rises through yellow and orange to red near the top of the overlay; strong combined or repeated hits occasionally reach those red peaks. Other color schemes supply their own matching spectrum and border colors. The spectrum describes key-driven visual energy rather than measured audio frequencies.
 
-The EQ defaults to 92% transparency and its own Settings slider changes it immediately. Energy fades over 950 milliseconds, leaving a faint static pattern when tapping stops. Reduce Motion uses stationary stems with brightness feedback. The circle, bass border flash and background EQ respond together.
+The EQ defaults to 92% transparency and its own Settings slider changes it immediately. Energy fades over 950 milliseconds, leaving a faint static pattern when tapping stops. Reduce Motion uses stationary stems with brightness feedback. The selected visualizer, bass border flash and background EQ respond together.
 
 The HUD remains visible while enabled. It uses native Liquid Glass on macOS 26 and newer, with a system visual-effect material on macOS 15. Appearance and transparency follow the system material, and text uses adaptive macOS colors.
 
@@ -86,7 +99,7 @@ Input Monitoring permission is required for live feedback. Settings and the HUD 
 
 If Input Monitoring is already on but Settings reports missing access, remove the stale entry and re-add the current app bundle, then quit and reopen DrumKey. A secure input session, such as a protected password field, can temporarily prevent keyboard capture. Recovery messages are written to the local system log under `local.drumkey.app`, category `KeyboardCapture`. These log messages describe listener state and omit key identities and typed text.
 
-The listener retains only the mapped hit identities and timestamps in a bounded in-memory history. Preferences store enabled state, visibility, EQ transparency, the chosen display and per-display overlay positions. DrumKey operates locally.
+The listener retains only the mapped hit identities and timestamps in bounded in-memory histories. Preferences store enabled state, visual theme, color scheme, overlay size, visibility, EQ transparency, the chosen display and per-display overlay positions. DrumKey operates locally.
 
 The overlay accepts mouse clicks for dragging, avoids keyboard focus, joins desktop Spaces, and restores its placement when screens change. Some exclusive full-screen applications or protected system surfaces can cover it. The fixed bindings use physical Mac key positions corresponding to ANSI D, F, J, K, L and Space.
 
@@ -95,10 +108,10 @@ DrumKey is permanently silent. MIDI is deferred from the current scope.
 ## Source and verification
 
 - `Sources/DrumKeyCore` holds the timestamped hit types, rhythm analyzer and display selection policy.
-- `Sources/DrumKey` holds the menu bar lifecycle, passive event tap, settings, display discovery, background EQ and glass soundstage.
+- `Sources/DrumKey` holds the menu bar lifecycle, passive event tap, settings, display discovery, background EQ, shared key-energy dynamics, seven visual themes and seven palettes.
 - `Packaging` and `scripts/build-app.sh` produce the launchable macOS bundle.
 - `Tests/DrumKeyCoreTests` covers rhythm analysis, tolerant tempo averaging, tempo changes and boundaries, manual accent isolation, missed beats, idle reset and display fallback/restoration.
-- `Tests/DrumKeyAppTests` covers capture recovery, L-key mapping, joint bass recognition and delayed event delivery, EQ peaks and decay, saved EQ transparency, four accent slots, centered projection, clearance during the higher rise, and saved placement across displays and resolution changes.
+- `Tests/DrumKeyAppTests` covers capture recovery, L-key mapping, joint bass recognition and delayed event delivery, EQ peaks and decay, saved EQ transparency, alternating columns and wide cardinal accents, fixed column bases and clearance at each size, additive retriggers and bounded release, theme/color persistence, size persistence and screen fitting, 30-second border buildup, burst limits, quick release, and saved placement across displays and resolution changes.
 
 ```sh
 swift test

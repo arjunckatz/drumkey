@@ -3,21 +3,21 @@ import DrumKeyCore
 
 @MainActor
 final class OverlayView: NSView {
-    static let preferredSize = NSSize(width: 192, height: 252)
+    static let preferredSize = OverlayScale.baseSize
     var onDragEnd: (() -> Void)?
 
     private var snapshot: RhythmSnapshot = .empty
     private var status: CaptureStatus = .permissionRequired
-    private var pulseStartedAt: [DrumKey: TimeInterval] = [:]
+    private var dynamics = KeyVisualDynamics()
+    private var visualizerTheme: VisualizerTheme = .glassCircle
+    private var palette = VisualizerColorScheme.classic.palette
     private var bassChordFlash = BassChordFlash()
+    private var percussionBorderEQ = PercussionBorderEQ()
     private var backgroundEQ = BackgroundEQ()
     private var eqOpacity = 0.08
-    private let eqGradient = NSGradient(colorsAndLocations:
-        (NSColor.systemGreen, 0), (.systemGreen, 0.55),
-        (.systemYellow, 0.72), (.systemOrange, 0.84), (.systemRed, 0.94), (.systemRed, 1)
-    )
+    private var eqGradient: NSGradient? { palette.spectrum }
     private var animationTimer: Timer?
-    private let pulseDuration: TimeInterval = 0.36
+    private var borderTint: NSColor { palette.border }
     private let meterLabel = NSTextField(labelWithString: "≈4/4")
     private let tempoLabel = NSTextField(labelWithString: "Allow input")
 
@@ -43,6 +43,13 @@ final class OverlayView: NSView {
     required init?(coder: NSCoder) { fatalError("init(coder:) is unavailable") }
 
     override var isFlipped: Bool { true }
+
+    override func setFrameSize(_ newSize: NSSize) {
+        super.setFrameSize(newSize)
+        meterLabel.frame = NSRect(x: 12, y: 13, width: max(0, newSize.width - 24), height: 29)
+        tempoLabel.frame = NSRect(x: 12, y: 45, width: max(0, newSize.width - 24), height: 17)
+        needsDisplay = true
+    }
 
     override func acceptsFirstMouse(for event: NSEvent?) -> Bool { true }
 
@@ -70,14 +77,16 @@ final class OverlayView: NSView {
         super.draw(dirtyRect)
         drawBackgroundEQ()
         drawSoundstage()
+        drawPercussionBorderEQ()
         drawBassChordBorder()
     }
 
     func register(hit: DrumHit, snapshot: RhythmSnapshot) {
         self.snapshot = snapshot
         let now = ProcessInfo.processInfo.systemUptime
-        pulseStartedAt[hit.key] = now
+        dynamics.register(key: hit.key, at: now)
         bassChordFlash.register(hit, deliveredAt: now)
+        percussionBorderEQ.register(hit, deliveredAt: now)
         backgroundEQ.register(key: hit.key, at: now)
         updateStatusLabels()
         updateAccessibility()
@@ -92,6 +101,16 @@ final class OverlayView: NSView {
         if eqOpacity > 0, backgroundEQ.isAnimating(at: ProcessInfo.processInfo.systemUptime) {
             startAnimationTimer()
         }
+    }
+
+    func setTheme(_ value: VisualizerTheme) {
+        visualizerTheme = value
+        needsDisplay = true
+    }
+
+    func setColorScheme(_ value: VisualizerColorScheme) {
+        palette = value.palette
+        needsDisplay = true
     }
 
     func update(snapshot: RhythmSnapshot) {
@@ -113,8 +132,9 @@ final class OverlayView: NSView {
     func clearPulses() {
         animationTimer?.invalidate()
         animationTimer = nil
-        pulseStartedAt.removeAll()
+        dynamics.reset()
         bassChordFlash.reset()
+        percussionBorderEQ.reset()
         backgroundEQ.reset()
         needsDisplay = true
     }
@@ -130,10 +150,10 @@ final class OverlayView: NSView {
 
     private func advancePulses() {
         let now = ProcessInfo.processInfo.systemUptime
-        pulseStartedAt = pulseStartedAt.filter { now - $0.value < pulseDuration }
         needsDisplay = true
         let eqIsAnimating = eqOpacity > 0 && backgroundEQ.isAnimating(at: now)
-        if pulseStartedAt.isEmpty, bassChordFlash.intensity(at: now) == 0, !eqIsAnimating {
+        if !dynamics.isAnimating(at: now), bassChordFlash.intensity(at: now) == 0,
+           !percussionBorderEQ.isAnimating(at: now), !eqIsAnimating {
             animationTimer?.invalidate()
             animationTimer = nil
         }
@@ -185,19 +205,49 @@ final class OverlayView: NSView {
         guard intensity > 0 else { return }
         if NSWorkspace.shared.accessibilityDisplayShouldReduceMotion { intensity *= 0.45 }
 
-        let tint = NSColor.systemIndigo.blended(withFraction: 0.5, of: .systemBlue) ?? .systemBlue
         let border = NSBezierPath(roundedRect: bounds.insetBy(dx: 4, dy: 4), xRadius: 20, yRadius: 20)
-        tint.withAlphaComponent(0.16 * intensity).setStroke()
+        borderTint.withAlphaComponent(0.16 * intensity).setStroke()
         border.lineWidth = 7
         border.stroke()
-        tint.withAlphaComponent(0.95 * intensity).setStroke()
+        borderTint.withAlphaComponent(0.95 * intensity).setStroke()
         border.lineWidth = 2.2
         border.stroke()
 
         let highlight = NSBezierPath(roundedRect: bounds.insetBy(dx: 5.5, dy: 5.5), xRadius: 18.5, yRadius: 18.5)
-        NSColor.white.withAlphaComponent(0.65 * intensity).setStroke()
+        NSColor.white.withAlphaComponent(0.22 * intensity).setStroke()
         highlight.lineWidth = 0.8
         highlight.stroke()
+    }
+
+    private func drawPercussionBorderEQ() {
+        let now = ProcessInfo.processInfo.systemUptime
+        let reduceMotion = NSWorkspace.shared.accessibilityDisplayShouldReduceMotion
+        NSGraphicsContext.saveGraphicsState()
+        NSBezierPath(roundedRect: bounds.insetBy(dx: 1, dy: 1), xRadius: 23, yRadius: 23).addClip()
+        for (key, x): (DrumKey, CGFloat) in [(.j, bounds.minX + 4), (.k, bounds.maxX - 4)] {
+            let level = percussionBorderEQ.level(for: key, at: now)
+            guard level > 0 else { continue }
+            let height = bounds.height * (reduceMotion ? 0.08 : level)
+            let opacity = reduceMotion ? level / 0.60 * 0.65 : 1
+            let bottom = bounds.maxY - 24
+            let top = bottom - height
+            let glow = NSBezierPath()
+            glow.move(to: NSPoint(x: x, y: bottom))
+            glow.line(to: NSPoint(x: x, y: top))
+            borderTint.withAlphaComponent(0.12 * opacity).setStroke()
+            glow.lineWidth = 7
+            glow.stroke()
+            borderTint.withAlphaComponent(0.95 * opacity).setFill()
+            var y = bottom
+            while y > top {
+                let segmentHeight = min(3, y - top)
+                NSBezierPath(roundedRect: NSRect(
+                    x: x - 1.6, y: y - segmentHeight, width: 3.2, height: segmentHeight
+                ), xRadius: 0.8, yRadius: 0.8).fill()
+                y -= 5
+            }
+        }
+        NSGraphicsContext.restoreGraphicsState()
     }
 
     private func updateStatusLabels() {
@@ -219,6 +269,13 @@ final class OverlayView: NSView {
 
     private func drawSoundstage() {
         let center = stage.center
+        if visualizerTheme != .glassCircle {
+            ThemeRenderer(layout: stage, levels: dynamics.levels(at: ProcessInfo.processInfo.systemUptime),
+                          palette: palette, reduceMotion: NSWorkspace.shared.accessibilityDisplayShouldReduceMotion)
+                .draw(visualizerTheme)
+            if visualizerTheme.isCircular { drawBeatMarkers(around: center) }
+            return
+        }
 
         // Thin nested rims leave the middle open and give the glass columns a
         // shared circular stage. A Space accent lights the complete outer rim.
@@ -226,16 +283,20 @@ final class OverlayView: NSView {
             let ringRect = stage.ringRect(radius: radius)
             let ring = NSBezierPath(ovalIn: ringRect)
             NSColor.labelColor.withAlphaComponent(0.07).setStroke()
-            ring.lineWidth = 0.7
+            ring.lineWidth = 0.7 * stage.scale
             ring.stroke()
             NSColor.white.withAlphaComponent(0.30).setStroke()
             let highlight = NSBezierPath(ovalIn: ringRect)
-            highlight.lineWidth = 0.5
+            highlight.lineWidth = 0.5 * stage.scale
             highlight.stroke()
         }
 
-        for key in DrumKey.allCases where pulseIntensity(for: key) > 0 {
-            drawStageRipples(for: key)
+        let accent = visualEnergy(for: .space)
+        if accent > 0 {
+            color(for: .space).withAlphaComponent(0.65 * accent).setStroke()
+            let rim = NSBezierPath(ovalIn: stage.ringRect(radius: 64))
+            rim.lineWidth = 1.8 * stage.scale
+            rim.stroke()
         }
 
         drawBeatMarkers(around: center)
@@ -245,39 +306,13 @@ final class OverlayView: NSView {
         }
     }
 
-    private func drawStageRipples(for key: DrumKey) {
-        let intensity = pulseIntensity(for: key)
-        let tint = color(for: key)
-        let isAccent = key == .space || key == .l
-        let isBass = key == .d || key == .f
-        let strength = isAccent ? 0.50 : (isBass ? 0.22 : 0.16)
-        if NSWorkspace.shared.accessibilityDisplayShouldReduceMotion {
-            tint.withAlphaComponent(strength * intensity).setStroke()
-            let rim = NSBezierPath(ovalIn: stage.ringRect(radius: 64))
-            rim.lineWidth = isBass ? 2 : 1.5
-            rim.stroke()
-            return
-        }
-
-        let progress = 1 - intensity
-        let delays: [Double] = isAccent ? [0, 0.18, 0.36] : [0, 0.24]
-        for delay in delays where progress >= delay {
-            let wave = (progress - delay) / (1 - delay)
-            let radius = 10 + wave * (isAccent ? 68 : 47)
-            let ripple = NSBezierPath(ovalIn: stage.ringRect(radius: radius))
-            tint.withAlphaComponent(strength * (1 - wave) * intensity).setStroke()
-            ripple.lineWidth = (0.75 + (1 - wave) * 0.75) * (isBass ? 1.4 : 1)
-            ripple.stroke()
-        }
-    }
-
     private func drawBeatMarkers(around center: NSPoint) {
         let beats = snapshot.meter?.beatsPerBar ?? 4
         for index in 0..<beats {
             let angle = -Double.pi / 2 + Double(index) * 2 * Double.pi / Double(beats)
-            let point = NSPoint(x: center.x + cos(angle) * 37, y: center.y + sin(angle) * 37)
+            let point = NSPoint(x: center.x + cos(angle) * 37 * stage.scale, y: center.y + sin(angle) * 37 * stage.scale)
             let isCurrent = snapshot.beatInBar == index + 1
-            let diameter: CGFloat = isCurrent ? 4 : 2.5
+            let diameter: CGFloat = (isCurrent ? 4 : 2.5) * stage.scale
             NSColor.labelColor.withAlphaComponent(isCurrent ? 0.65 : 0.18).setFill()
             NSBezierPath(ovalIn: NSRect(
                 x: point.x - diameter / 2, y: point.y - diameter / 2,
@@ -288,13 +323,14 @@ final class OverlayView: NSView {
 
     private func drawGlassArtifact(_ artifact: GlassArtifact) {
         let key = artifact.key
+        let scale = artifact.scale
         let isBass = artifact.isBass
-        let intensity = pulseIntensity(for: key)
+        let intensity = visualEnergy(for: key)
         let reduceMotion = NSWorkspace.shared.accessibilityDisplayShouldReduceMotion
         let rect = artifact.frontRect(intensity: intensity, reduceMotion: reduceMotion)
-        let depth = SoundstageLayout.depth
+        let depth = artifact.depth
         let tint = color(for: key)
-        let front = NSBezierPath(roundedRect: rect, xRadius: 2.5, yRadius: 2.5)
+        let front = NSBezierPath(roundedRect: rect, xRadius: 2.5 * scale, yRadius: 2.5 * scale)
         let top = polygon([
             NSPoint(x: rect.minX, y: rect.minY),
             NSPoint(x: rect.minX + depth.x, y: rect.minY + depth.y),
@@ -311,8 +347,8 @@ final class OverlayView: NSView {
         NSGraphicsContext.saveGraphicsState()
         let shadow = NSShadow()
         shadow.shadowColor = NSColor.black.withAlphaComponent(0.13 + intensity * 0.06)
-        shadow.shadowBlurRadius = 3
-        shadow.shadowOffset = NSSize(width: -1, height: -2)
+        shadow.shadowBlurRadius = 2 * scale
+        shadow.shadowOffset = NSSize(width: -scale, height: -2 * scale)
         shadow.set()
         tint.withAlphaComponent(0.12 + intensity * 0.10).setFill()
         front.fill()
@@ -335,32 +371,16 @@ final class OverlayView: NSView {
 
         for face in [front, side, top] {
             NSColor.white.withAlphaComponent(0.45 + intensity * 0.20).setStroke()
-            face.lineWidth = isBass ? 1.05 : 0.55
+            face.lineWidth = (isBass ? 1.05 : (key == .l ? 0.8 : 0.55)) * scale
             face.stroke()
         }
 
         let reflection = NSBezierPath()
-        reflection.move(to: NSPoint(x: rect.maxX - 2, y: rect.minY + 3))
-        reflection.line(to: NSPoint(x: rect.maxX - 2, y: rect.maxY - 3))
+        reflection.move(to: NSPoint(x: rect.maxX - 2 * scale, y: rect.minY + 3 * scale))
+        reflection.line(to: NSPoint(x: rect.maxX - 2 * scale, y: rect.maxY - 3 * scale))
         NSColor.white.withAlphaComponent(0.34 + intensity * 0.25).setStroke()
-        reflection.lineWidth = isBass ? 1.3 : 0.8
+        reflection.lineWidth = (isBass ? 1.3 : 0.8) * scale
         reflection.stroke()
-
-        if intensity > 0, !reduceMotion {
-            let progress = 1 - intensity
-            for delay in [0.0, 0.18, 0.36] where progress >= delay {
-                let wave = (progress - delay) / (1 - delay)
-                let diameter = 9 + wave * 26
-                let foot = artifact.footprint
-                let ripple = NSBezierPath(ovalIn: NSRect(
-                    x: foot.x - diameter / 2, y: foot.y - diameter / 4,
-                    width: diameter, height: diameter / 2
-                ))
-                tint.withAlphaComponent((1 - wave) * intensity * (isBass ? 0.55 : 0.40)).setStroke()
-                ripple.lineWidth = isBass ? 1.6 : 0.9
-                ripple.stroke()
-            }
-        }
     }
 
     private func polygon(_ points: [NSPoint]) -> NSBezierPath {
@@ -373,9 +393,8 @@ final class OverlayView: NSView {
         return path
     }
 
-    private func pulseIntensity(for key: DrumKey) -> Double {
-        guard let start = pulseStartedAt[key] else { return 0 }
-        return max(0, 1 - (ProcessInfo.processInfo.systemUptime - start) / pulseDuration)
+    private func visualEnergy(for key: DrumKey) -> Double {
+        dynamics.level(for: key, at: ProcessInfo.processInfo.systemUptime)
     }
 
     private func updateAccessibility() {
@@ -389,13 +408,6 @@ final class OverlayView: NSView {
     }
 
     private func color(for key: DrumKey) -> NSColor {
-        switch key {
-        case .d: .systemIndigo
-        case .f: .systemBlue
-        case .j: .systemOrange
-        case .k: .systemPink
-        case .l: .systemTeal
-        case .space: .systemMint
-        }
+        palette.color(for: key)
     }
 }

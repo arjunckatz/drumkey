@@ -24,7 +24,7 @@ enum CaptureStatus: String {
 
     var detail: String {
         switch self {
-        case .listening: "Tap D, F, J, K and Space alongside your music. L triggers the four accent bars."
+        case .listening: "Tap D, F, J, K and Space alongside your music. L adds a manual visual accent."
         case .paused: "Enable DrumKey to show the overlay and follow your taps."
         case .permissionRequired: "Allow DrumKey in System Settings → Privacy & Security → Input Monitoring. If it is already switched on, remove that entry and add the current DrumKey app, then quit and reopen it."
         case .unavailable: "The keyboard listener could not start. Retry access or restart DrumKey."
@@ -70,6 +70,15 @@ final class DrumKeySession: NSObject, ObservableObject {
         }.store(in: &subscriptions)
         settings.$eqTransparency.sink { [weak self] value in
             self?.overlay.setEQTransparency(value)
+        }.store(in: &subscriptions)
+        settings.$overlayScale.sink { [weak self] value in
+            self?.overlay.setScale(value)
+        }.store(in: &subscriptions)
+        settings.$visualizerTheme.sink { [weak self] value in
+            self?.overlay.setTheme(value)
+        }.store(in: &subscriptions)
+        settings.$colorScheme.sink { [weak self] value in
+            self?.overlay.setColorScheme(value)
         }.store(in: &subscriptions)
         settings.$preferredDisplayID.dropFirst().sink { [weak self] id in
             self?.repositionOverlay(preferredID: id)
@@ -141,6 +150,9 @@ final class DrumKeySession: NSObject, ObservableObject {
                 self.processHit(hit)
                 if hit.key == .d {
                     self.processHit(DrumHit(key: .f, timestamp: hit.timestamp + 0.008))
+                }
+                if index % 8 == 6 {
+                    self.processHit(DrumHit(key: .l, timestamp: hit.timestamp + 0.012))
                 }
                 try? await Task.sleep(for: .milliseconds(400))
             }

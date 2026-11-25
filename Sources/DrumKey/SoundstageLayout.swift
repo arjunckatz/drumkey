@@ -3,27 +3,42 @@ import DrumKeyCore
 
 struct SoundstageLayout {
     static let depth = NSPoint(x: -4, y: -5)
+    static let keyOrder: [DrumKey] = [.j, .k, .j, .l, .d, .f, .d, .l, .f, .d, .f, .l, .k, .j, .k, .l]
     private static let diameter: CGFloat = 152 * 1.10
     let bounds: NSRect
 
+    var scale: CGFloat {
+        min(bounds.width / OverlayScale.baseSize.width, bounds.height / OverlayScale.baseSize.height)
+    }
+
     var center: NSPoint {
-        NSPoint(x: bounds.midX, y: 72 + Self.diameter / 2)
+        let extraHeight = max(0, bounds.height - 72 - 180 * scale)
+        return NSPoint(x: bounds.midX, y: bounds.minY + 72 + extraHeight / 2 + Self.diameter * scale / 2)
+    }
+
+    /// Leave room for the bold radial glow and the fixed-size status labels.
+    var maximumRadialRadius: CGFloat {
+        let clearance = min(
+            center.x - bounds.minX, bounds.maxX - center.x,
+            center.y - bounds.minY - 66, bounds.maxY - center.y
+        )
+        return max(0, clearance - 5 * scale)
     }
 
     func ringRect(radius: CGFloat) -> NSRect {
-        NSRect(x: center.x - radius, y: center.y - radius, width: radius * 2, height: radius * 2)
+        let scaledRadius = radius * scale
+        return NSRect(x: center.x - scaledRadius, y: center.y - scaledRadius, width: scaledRadius * 2, height: scaledRadius * 2)
     }
 
     var artifacts: [GlassArtifact] {
-        let regions: [DrumKey] = [.j, .d, .f, .k]
         return (0..<16).map { index in
             let position = index % 4
-            let key = position == 3 ? DrumKey.l : regions[index / 4]
+            let key = Self.keyOrder[index]
             let angle = -7 * Double.pi / 8 + Double(index) * Double.pi / 8
             // Keep the mirrored projection, with accents on the cardinal axes:
             // D/F occupy the left semicircle and J/K occupy the right.
-            let point = NSPoint(x: center.x - cos(angle) * 55, y: center.y + sin(angle) * 55)
-            return GlassArtifact(key: key, center: point, variation: position == 3 ? 1 : position)
+            let point = NSPoint(x: center.x - cos(angle) * 55 * scale, y: center.y + sin(angle) * 55 * scale)
+            return GlassArtifact(key: key, center: point, variation: position == 3 ? 1 : position, scale: scale)
         }
     }
 }
@@ -32,19 +47,20 @@ struct GlassArtifact {
     let key: DrumKey
     let center: NSPoint
     let variation: Int
+    let scale: CGFloat
 
     var isBass: Bool { key == .d || key == .f }
-    var baseHeight: CGFloat { 13 + CGFloat(variation) * 4 }
+    var depth: NSPoint { NSPoint(x: SoundstageLayout.depth.x * scale, y: SoundstageLayout.depth.y * scale) }
+    var baseHeight: CGFloat { (11 + CGFloat(variation) * 3) * scale }
     var width: CGFloat {
-        if key == .l { return 7.5 }
-        let standardWidth = 10 + CGFloat(variation) * 1.5
+        if key == .l { return 19 * scale }
+        let standardWidth = (10 + CGFloat(variation) * 1.5) * scale
         return isBass ? standardWidth * 1.35 : standardWidth
     }
 
     /// Center the complete projected object on the ring. The top face and the
     /// front face both contribute to its visible bounds.
     var baseRect: NSRect {
-        let depth = SoundstageLayout.depth
         return NSRect(
             x: center.x - width / 2 - depth.x / 2,
             y: center.y - baseHeight / 2 - depth.y / 2,
@@ -52,19 +68,11 @@ struct GlassArtifact {
         )
     }
 
-    var footprint: NSPoint {
-        NSPoint(x: center.x, y: center.y + baseHeight / 2)
-    }
-
     func frontRect(intensity: Double, reduceMotion: Bool) -> NSRect {
-        let attack = reduceMotion ? 0 : pow(max(0, min(1, intensity)), 1.7)
-        let travel = attack * 12
-        let extensionHeight = attack * 7
-        let extensionWidth = isBass ? width * attack * 0.20 : 0
+        let energy = reduceMotion ? 0 : max(0, min(1, intensity))
+        let extensionHeight = energy * 24 * scale
         var rect = baseRect
-        rect.origin.x -= extensionWidth / 2
-        rect.size.width += extensionWidth
-        rect.origin.y -= travel + extensionHeight
+        rect.origin.y -= extensionHeight
         rect.size.height += extensionHeight
         return rect
     }

@@ -9,6 +9,7 @@ final class OverlayController {
     private let panel: OverlayPanel
     private let overlayView: OverlayView
     private let settings: AppSettings
+    private var requestedScale: OverlayScale = .one
     private var currentDisplayID: String?
     var onDisplayChangedByDrag: ((String) -> Void)?
 
@@ -72,10 +73,28 @@ final class OverlayController {
         overlayView.setEQTransparency(value)
     }
 
+    func setScale(_ value: OverlayScale) {
+        requestedScale = value
+        if let screen = panel.screen { position(on: screen) }
+    }
+
+    func setTheme(_ value: VisualizerTheme) {
+        overlayView.setTheme(value)
+    }
+
+    func setColorScheme(_ value: VisualizerColorScheme) {
+        overlayView.setColorScheme(value)
+    }
+
     func position(on screen: NSScreen) {
         let displayID = DisplayManager.identifier(screen)
         currentDisplayID = displayID
         let visibleFrame = screen.visibleFrame
+        let available = visibleFrame.insetBy(dx: Self.screenMargin, dy: Self.screenMargin).size
+        let size = requestedScale.size(fitting: available)
+        panel.setContentSize(size)
+        overlayView.setFrameSize(size)
+        overlayView.needsDisplay = true
         if let position = settings.overlayPosition(for: displayID) {
             panel.setFrameOrigin(position.origin(windowSize: panel.frame.size, visibleFrame: visibleFrame))
             return
@@ -102,6 +121,7 @@ final class OverlayController {
     }
 
     private static func makeGlassContainer(contentView: NSView) -> NSView {
+        contentView.autoresizingMask = [.width, .height]
         if #available(macOS 26.0, *) {
             let glassView = NSGlassEffectView(frame: contentView.bounds)
             glassView.contentView = contentView
@@ -117,7 +137,6 @@ final class OverlayController {
         effectView.wantsLayer = true
         effectView.layer?.cornerRadius = 24
         effectView.layer?.masksToBounds = true
-        contentView.autoresizingMask = [.width, .height]
         effectView.addSubview(contentView)
         return effectView
     }

@@ -18,6 +18,18 @@ final class AppSettings: ObservableObject {
         didSet { defaults.set(eqTransparency, forKey: "eqTransparency") }
     }
 
+    @Published var overlayScale: OverlayScale {
+        didSet { defaults.set(overlayScale.rawValue, forKey: "overlayScale") }
+    }
+
+    @Published var visualizerTheme: VisualizerTheme {
+        didSet { defaults.set(visualizerTheme.rawValue, forKey: "visualizerTheme") }
+    }
+
+    @Published var colorScheme: VisualizerColorScheme {
+        didSet { defaults.set(colorScheme.rawValue, forKey: "colorScheme") }
+    }
+
     @Published private(set) var preferredDisplayID: String?
     @Published private(set) var preferredDisplayName: String?
 
@@ -30,6 +42,9 @@ final class AppSettings: ObservableObject {
         visibility = min(1, max(0.40, savedVisibility.isFinite ? savedVisibility : 0.78))
         let savedEQTransparency = defaults.object(forKey: "eqTransparency") as? Double ?? 0.92
         eqTransparency = min(1, max(0, savedEQTransparency.isFinite ? savedEQTransparency : 0.92))
+        overlayScale = OverlayScale(rawValue: defaults.double(forKey: "overlayScale")) ?? .one
+        visualizerTheme = VisualizerTheme(rawValue: defaults.string(forKey: "visualizerTheme") ?? "") ?? .glassCircle
+        colorScheme = VisualizerColorScheme(rawValue: defaults.string(forKey: "colorScheme") ?? "") ?? .classic
         preferredDisplayID = defaults.string(forKey: "preferredDisplayID")
         preferredDisplayName = defaults.string(forKey: "preferredDisplayName")
     }

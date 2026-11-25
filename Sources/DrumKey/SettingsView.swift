@@ -41,6 +41,16 @@ struct SettingsView: View {
             }
 
             Section {
+                Picker("Visual theme", selection: $settings.visualizerTheme) {
+                    ForEach(VisualizerTheme.allCases, id: \.self) { theme in
+                        Text(theme.label).tag(theme)
+                    }
+                }
+                Picker("Color scheme", selection: $settings.colorScheme) {
+                    ForEach(VisualizerColorScheme.allCases, id: \.self) { scheme in
+                        Text(scheme.label).tag(scheme)
+                    }
+                }
                 Picker("Display", selection: displaySelection) {
                     Text("Automatic · prefer secondary").tag("")
                     ForEach(displays.displays) { display in
@@ -55,6 +65,11 @@ struct SettingsView: View {
                         .font(.caption)
                         .foregroundStyle(.secondary)
                         .fixedSize(horizontal: false, vertical: true)
+                }
+                Picker("Overlay size", selection: $settings.overlayScale) {
+                    ForEach(OverlayScale.allCases, id: \.self) { scale in
+                        Text(scale.label).tag(scale)
+                    }
                 }
                 LabeledContent("Visibility") {
                     Slider(value: $settings.visibility, in: 0.40...1, step: 0.05)
@@ -80,19 +95,25 @@ struct SettingsView: View {
             } header: {
                 Text("Overlay")
             } footer: {
-                Text("Click and drag the overlay to move it. Each display remembers its position. Higher EQ transparency makes the background spectrum fainter.")
+                Text("Themes and colors change live and are remembered. Size enlarges the visualizer while BPM and meter text stay the same size. Drag the panel to move it. Higher EQ transparency makes the background fainter.")
             }
 
             Section {
                 LabeledContent("Bass", value: "D · F")
                 LabeledContent("Border flash", value: "D + F together")
                 LabeledContent("Percussion", value: "J · K")
+                LabeledContent("Border meters", value: "J left · K right")
                 LabeledContent("Downbeat / accent", value: "Space")
-                LabeledContent("Accent bars", value: "L · manual")
+                LabeledContent("Manual accent", value: "L")
             } header: {
                 Text("Keys")
             } footer: {
-                Text("The circle and background EQ follow the same keys. L triggers the four accent bars manually. Keys keep their ordinary actions; hold Command, Control or Option to use shortcuts without adding a hit. Space helps refine the tentative meter.")
+                VStack(alignment: .leading, spacing: 6) {
+                    if settings.visualizerTheme.usesRadialKeyMap {
+                        Text("Radial keys respond on both sides: D/F lift the upper bass ears, J the sidewalls, K the lower shoulders and L the fine lower peaks.")
+                    }
+                    Text("J/K border meters build toward 60% height through 30 seconds of frequent tapping. L is a manual visual accent. Keys keep their ordinary actions; hold Command, Control or Option to use shortcuts without adding a hit.")
+                }
             }
         }
         .formStyle(.grouped)
