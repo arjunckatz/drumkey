@@ -100,19 +100,23 @@ struct SettingsView: View {
 
             Section {
                 LabeledContent("Bass", value: "D · F")
-                LabeledContent("Border flash", value: "D + F together")
+                LabeledContent("Border flash", value: "D + F · Space")
                 LabeledContent("Percussion", value: "J · K")
                 LabeledContent("Border meters", value: "J left · K right")
-                LabeledContent("Downbeat / accent", value: "Space")
+                LabeledContent("Downbeat + both bass keys", value: "Space")
                 LabeledContent("Manual accent", value: "L")
             } header: {
                 Text("Keys")
             } footer: {
                 VStack(alignment: .leading, spacing: 6) {
                     if settings.visualizerTheme.usesRadialKeyMap {
-                        Text("Radial keys respond on both sides: D/F lift the upper bass ears, J the sidewalls, K the lower shoulders and L the fine lower peaks.")
+                        Text("D opens broad side jaws, F the diagonal horns, J the top crown, K the lower crown and L fine teeth around the rim.")
+                    } else if settings.visualizerTheme == .circleTowers {
+                        Text("D/F raise the heavy front bass banks, J/K the rear percussion banks, and L the two side beacons.")
+                    } else if [.linearEQ, .ledMatrix, .mirrorWave].contains(settings.visualizerTheme) {
+                        Text("D/F bass stays on the left and has taller peaks. J/K/L occupy the right. Linear EQ uses solid banks; LED Matrix uses paired clusters.")
                     }
-                    Text("J/K border meters build toward 60% height through 30 seconds of frequent tapping. L is a manual visual accent. Keys keep their ordinary actions; hold Command, Control or Option to use shortcuts without adding a hit.")
+                    Text("Space triggers both D and F while marking the downbeat. J/K border meters build toward 60% height through 30 seconds of frequent tapping. L stays manual. Keys keep their ordinary actions; hold Command, Control or Option to use shortcuts without adding a hit.")
                 }
             }
         }

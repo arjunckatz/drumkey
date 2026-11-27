@@ -81,4 +81,21 @@ struct SoundstageLayoutTests {
     @Test func physicalLKeyMapsToTheAccentBars() {
         #expect(DrumKey(macKeyCode: 37) == .l)
     }
+
+    @Test(arguments: OverlayScale.allCases) func circleTowersKeepTheirBasesAndPeaksInsideThePanel(scale: OverlayScale) {
+        let size = scale.size(fitting: CGSize(width: 2000, height: 2000))
+        let stage = SoundstageLayout(bounds: NSRect(origin: .zero, size: size))
+        #expect(stage.towerArtifacts.count == 18)
+        for tower in stage.towerArtifacts {
+            let travel: CGFloat = tower.isBass ? 36 : (tower.key == .l ? 44 : 26)
+            let rest = tower.baseRect
+            let peak = tower.frontRect(intensity: 1, reduceMotion: false, maximumExtension: travel)
+            let projected = peak.union(peak.offsetBy(dx: tower.depth.x, dy: tower.depth.y))
+            #expect(abs(peak.maxY - rest.maxY) < 0.0001)
+            #expect(projected.minY >= 66)
+            #expect(stage.bounds.insetBy(dx: 8, dy: 8).contains(projected))
+            if tower.key == .d { #expect(tower.center.x < stage.center.x) }
+            if tower.key == .f { #expect(tower.center.x > stage.center.x) }
+        }
+    }
 }

@@ -41,6 +41,16 @@ struct SoundstageLayout {
             return GlassArtifact(key: key, center: point, variation: position == 3 ? 1 : position, scale: scale)
         }
     }
+
+    var towerArtifacts: [GlassArtifact] {
+        let keys: [DrumKey] = [.k, .k, .k, .k, .l, .f, .f, .f, .f, .d, .d, .d, .d, .l, .j, .j, .j, .j]
+        return keys.enumerated().map { index, key in
+            let angle = (10 + Double(index) * 20) * .pi / 180
+            let point = NSPoint(x: center.x + sin(angle) * 62 * scale,
+                                y: center.y + 17 * scale - cos(angle) * 40 * scale)
+            return GlassArtifact(key: key, center: point, variation: index % 3, scale: scale)
+        }
+    }
 }
 
 struct GlassArtifact {
@@ -68,9 +78,9 @@ struct GlassArtifact {
         )
     }
 
-    func frontRect(intensity: Double, reduceMotion: Bool) -> NSRect {
+    func frontRect(intensity: Double, reduceMotion: Bool, maximumExtension: CGFloat = 24) -> NSRect {
         let energy = reduceMotion ? 0 : max(0, min(1, intensity))
-        let extensionHeight = energy * 24 * scale
+        let extensionHeight = energy * maximumExtension * scale
         var rect = baseRect
         rect.origin.y -= extensionHeight
         rect.size.height += extensionHeight

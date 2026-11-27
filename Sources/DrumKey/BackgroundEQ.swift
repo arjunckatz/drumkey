@@ -15,7 +15,8 @@ struct BackgroundEQ {
         let decay = decay(at: now)
         for index in energies.indices {
             let position = Double(index) / Double(Self.bandCount - 1)
-            energies[index] = min(0.98, energies[index] * decay + Self.response(for: key, at: position))
+            let ceiling = position < 0.5 ? 0.98 : 0.64
+            energies[index] = min(ceiling, energies[index] * decay + EQKeyMap.backgroundResponse(for: key, at: position))
         }
         lastHitTime = now
     }
@@ -43,20 +44,4 @@ struct BackgroundEQ {
         return pow(max(0, 1 - (now - lastHitTime) / decayDuration), 2)
     }
 
-    private static func response(for key: DrumKey, at position: Double) -> Double {
-        let center: Double
-        let spread: Double
-        let gain: Double
-        switch key {
-        case .d: (center, spread, gain) = (0.12, 0.17, 0.62)
-        case .f: (center, spread, gain) = (0.29, 0.18, 0.64)
-        case .j: (center, spread, gain) = (0.62, 0.16, 0.65)
-        case .k: (center, spread, gain) = (0.82, 0.15, 0.69)
-        case .l: (center, spread, gain) = (0.95, 0.12, 0.76)
-        case .space:
-            return 0.68 + 0.20 * abs(sin(position * 2 * .pi + 0.4))
-        }
-        let focus = exp(-0.5 * pow((position - center) / spread, 2))
-        return gain * (0.08 + 0.92 * focus)
-    }
 }

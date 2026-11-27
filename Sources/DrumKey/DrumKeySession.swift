@@ -24,7 +24,7 @@ enum CaptureStatus: String {
 
     var detail: String {
         switch self {
-        case .listening: "Tap D, F, J, K and Space alongside your music. L adds a manual visual accent."
+        case .listening: "Tap D, F, J, K and L alongside your music. Space triggers both bass keys and marks the downbeat."
         case .paused: "Enable DrumKey to show the overlay and follow your taps."
         case .permissionRequired: "Allow DrumKey in System Settings → Privacy & Security → Input Monitoring. If it is already switched on, remove that entry and add the current DrumKey app, then quit and reopen it."
         case .unavailable: "The keyboard listener could not start. Retry access or restart DrumKey."

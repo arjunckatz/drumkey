@@ -1,13 +1,12 @@
 import Foundation
 import DrumKeyCore
 
-/// A mirrored low-to-high sweep from the upper bass crown to the lower accents.
-/// Smooth, overlapping fields let a chord form one silhouette instead of
-/// lighting unrelated columns inherited from the glass stage.
+/// Broad lateral bass jaws, diagonal horns and separate top/bottom crowns.
+/// Compact angular fields have sharp crests for a distorted, pointed outline.
 struct RadialKeyMap {
     struct Band {
         let key: DrumKey
-        let center: Double
+        let centers: [Double]
         let width: Double
     }
 
@@ -24,31 +23,36 @@ struct RadialKeyMap {
 
         func level(in levels: [DrumKey: Double]) -> Double {
             let sum = influences.reduce(0) { $0 + ($1.weight * (levels[$1.key] ?? 0)) }
-            return min(1, max(0, sum + (levels[.space] ?? 0) * 0.55))
+            return min(1, max(0, sum))
         }
     }
 
-    // Angles run clockwise from twelve o'clock and are reflected on the left.
+    // Angles run clockwise from twelve o'clock. L is a fine serrated rim.
     static let bands: [Band] = [
-        Band(key: .d, center: 25, width: 24),
-        Band(key: .f, center: 55, width: 22),
-        Band(key: .j, center: 90, width: 18),
-        Band(key: .k, center: 125, width: 16),
-        Band(key: .l, center: 160, width: 12)
+        Band(key: .d, centers: [90, 270], width: 58),
+        Band(key: .f, centers: [45, 135, 225, 315], width: 34),
+        Band(key: .j, centers: [0], width: 40),
+        Band(key: .k, centers: [180], width: 44),
+        Band(key: .l, centers: (0..<12).map { 15 + Double($0) * 30 }, width: 6)
     ]
 
-    static let halo = samples(count: 96, offset: 0)
-    static let spectrum = samples(count: 64, offset: 0.5)
-    static let orbits = samples(count: 20, offset: 0.5)
+    static let halo = samples(count: 120, offset: 0)
+    static let spectrum = samples(count: 72, offset: 0)
+    static let orbits = samples(count: 24, offset: 0)
+    static let blades = samples(count: 24, offset: 0.5)
 
     static func sample(at angle: Double) -> Sample {
-        let foldedDegrees = acos(max(-1, min(1, cos(angle)))) * 180 / .pi
+        let degrees = angle * 180 / .pi
         let influences = bands.map { band in
-            let distance = (foldedDegrees - band.center) / band.width
-            return Influence(key: band.key, weight: exp(-0.5 * distance * distance))
+            let distance = band.centers.map { center in
+                abs(atan2(sin((degrees - center) * .pi / 180), cos((degrees - center) * .pi / 180))) * 180 / .pi
+            }.min() ?? 180
+            let crest = max(0, 1 - distance / band.width)
+            let profile = pow(crest, band.key == .d ? 1.15 : 1.5)
+            return Influence(key: band.key, weight: profile * (band.key == .l ? 0.72 : 1))
         }
         return Sample(x: sin(angle), y: -cos(angle), influences: influences,
-                      primaryKey: influences.max { $0.weight < $1.weight }!.key)
+                      primaryKey: influences.max { $0.weight < $1.weight }?.key ?? .d)
     }
 
     private static func samples(count: Int, offset: Double) -> [Sample] {

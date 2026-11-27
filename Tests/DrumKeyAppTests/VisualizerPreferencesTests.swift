@@ -11,11 +11,11 @@ struct VisualizerPreferencesTests {
         let settings = AppSettings(defaults: defaults)
         #expect(settings.visualizerTheme == .glassCircle)
         #expect(settings.colorScheme == .classic)
-        settings.visualizerTheme = .ledMatrix
-        settings.colorScheme = .neon
+        settings.visualizerTheme = .circleTowers
+        settings.colorScheme = .roseQuartz
         let restored = AppSettings(defaults: defaults)
-        #expect(restored.visualizerTheme == .ledMatrix)
-        #expect(restored.colorScheme == .neon)
+        #expect(restored.visualizerTheme == .circleTowers)
+        #expect(restored.colorScheme == .roseQuartz)
         defaults.set("retiredTheme", forKey: "visualizerTheme")
         defaults.set("retiredPalette", forKey: "colorScheme")
         let fallback = AppSettings(defaults: defaults)

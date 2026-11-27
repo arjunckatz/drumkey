@@ -7,37 +7,41 @@ Choose **Settings → Overlay → Visual theme**, then choose a separate **Color
 | Theme | Appearance and response |
 | --- | --- |
 | Glass Circle | The original sixteen glass columns around an empty center. D/F alternate on the left, J/K on the right, with four wider manual L accents at the cardinal points. Each base stays fixed while its top grows. |
-| Pulse Halo | An open, smoothly contoured halo with mirrored upper bass ears and progressively narrower side and lower percussion lobes. Its glass fill and outline blend through the five key colors symmetrically. Up to 36 points of outward travel at 1× makes each hit punchier. |
-| Radial Spectrum | Sixty-four bold spokes growing outward from a fixed inner circle, with about 41 points of travel at 1×. The shared mirrored fields form smooth, overlapping musical regions with matching blended colors. |
-| Linear EQ | Sixteen upright bars above a fixed horizontal baseline. Bass occupies the left half and percussion the right, with L accents distributed across the row. |
+| Pulse Halo | An angular open halo with pointed side jaws, diagonal horns and separate upper/lower crowns. Its sharp outline and glass fill retain up to 36 points of outward travel at 1×. |
+| Radial Spectrum | Seventy-two tapered spears growing from a fixed inner circle, with about 41 points of travel at 1×. Spear tips and angular key fields give it a bass-distortion character. |
+| Linear EQ | Twenty-four bars above a fixed baseline: six D, six F, then four each of J, K and L. Bass stays entirely on the left and has a 107-point peak height at 1×; J/K/L peak at 67 points. |
 | Mirror Wave | A filled horizontal waveform extending above and below a fixed centerline. Key energy changes its amplitude across the width. |
-| Orbit Dots | Twenty illuminated beads on static circular tracks, joined as a delicate necklace around an open center. The shared mirrored fields kick the beads outward along visible stems. Bass beads are fuller and lower accent beads are finer. |
-| LED Matrix | A sixteen-column, twelve-row segmented display. Energy lights cells from the bottom upward through the selected spectrum. |
+| Orbit Shards | Twenty-four radial glass kites with pointed outer tips and anchored stems. The saved Orbit Dots preference opens this refreshed design automatically. |
+| LED Matrix | Twenty-four segmented columns. Paired D/F clusters fill the left half and two J/K/L banks fill the right. Bass can light sixteen rows; J/K/L can light ten. |
+| Circle Towers | Eighteen projected glass towers around an elliptical circular stage. D/F control the heavy front-left/front-right banks; J/K the rear-left/rear-right banks; L the two side beacons. Bases stay anchored as tops grow. |
+| Razor Bloom | Twenty-four faceted crystal blades around an open core, driven by the new radial mapping. Each blade ends in a sharp point. |
+| Silk Ribbons | Five translucent horizontal ribbons, one each for D, F, J, K and L from top to bottom. Hits lift their waves and strengthen their glass highlights. |
+| Hex Array | Nineteen glass hexagons: D controls the central spine, F the middle flanks, J/K the side cells and L the upper/lower edge tiles. |
 
 The primary visualizer shares one bounded energy envelope across all layouts. A hit adds 0.42 to its key's remaining energy, up to 1.0. Energy releases exponentially with a 0.70-second time constant. Repeated hits therefore build from the current height instead of restarting a separate jump. Glass tops extend up to 24 points at 1×; their bottom edges and widths remain fixed. All distances scale with the overlay preset while BPM and meter text keep their physical size.
 
-Pulse Halo, Radial Spectrum and Orbit Dots amplify this same envelope with longer outward travel and stronger highlights. Radial tips and bead edges reserve room for their glow, the fixed-size labels and the panel boundary at every size. Retriggers add to the remaining energy while each shape falls back; the extra travel does not introduce a separate oscillator or expanding ripple.
+The radial layouts use longer outward travel, tapered tips and stronger highlights. Tips and crystal edges reserve room for their glow, the fixed-size labels and the panel boundary at every size. Retriggers add to the remaining energy while each shape falls back; the extra travel does not introduce a separate oscillator or expanding ripple. Circle Towers uses 36 points of bass extension, 26 points of percussion extension and 44 points for its side beacons at 1×.
 
-Space supplies a broad accent in the new layouts. L remains a manual visual accent outside tempo and meter analysis. The existing background EQ, D/F border flash, and J/K border meters run alongside every layout with their own established timing. Switching themes preserves the current key energy. Reduce Motion uses stationary geometry with brightness feedback, and drawing timers stop once the input energy has settled.
+Space triggers D and F together in every layout, including the background EQ and joint-bass border flash, while retaining its own downbeat/rim accent. The analyzer receives one original Space onset. L remains a manual visual accent outside tempo and meter analysis. The background EQ and J/K border meters run alongside every layout. Switching themes preserves the current key energy. Reduce Motion uses stationary geometry with brightness feedback, and drawing timers stop once the input energy has settled.
 
 ## Radial key composition
 
-Pulse Halo, Radial Spectrum and Orbit Dots share a low-to-high sweep reflected across the vertical centerline. Every individual key excites both sides together. Broad bass fields give the silhouette weight; percussion becomes progressively narrower toward the lower edge. Adjacent fields overlap smoothly, so mixed taps combine into a coherent outline. Color transitions follow the same fields and remain mirrored.
+The November 27 redesign replaces the previous upper-to-lower frequency sweep in Pulse Halo, Radial Spectrum and Orbit Shards, and also drives Razor Bloom. D makes broad horizontal jaws, F forms four diagonal horns, J and K separate the top and bottom crowns, and L cuts a fine twelve-tooth rim. Compact angular profiles and unsmoothed crests make pointed shapes, with stronger bass weight across the sides and diagonals. The existing additive hit-and-decay physics remains shared.
 
 | Key | Main regions, approximately | Visual role |
 | --- | --- | --- |
-| D | 11:10 and 12:50 | Broad upper bass crests, forming the inner pair of ears. |
-| F | 10:10 and 1:50 | Broad outer bass shoulders, opening the upper half. |
-| J | 9 and 3 o'clock | Paired sidewalls for the main snare response. |
-| K | 7:50 and 4:10 | Tighter lower shoulders for a contrasting percussion response. |
-| L | 6:40 and 5:20 | Fine lower accent peaks, replacing the radial four-cardinal cross. |
-| Space | Complete circumference | A balanced whole-rim downbeat accent. |
+| D | 9 and 3 o'clock | Broad lateral bass jaws. |
+| F | 1:30, 4:30, 7:30 and 10:30 | Four diagonal bass horns. |
+| J | 12 o'clock | Upper percussion crown. |
+| K | 6 o'clock | Lower percussion crown. |
+| L | Twelve fine peaks around the rim | Manual serrated accent. |
+| Space | D and F regions together | Combined bass response plus the downbeat accent. |
 
-These are expressive spatial roles, rather than a measured frequency or a claim about the intended instrument. The same 0.70-second release and additive retriggers drive every region. Glass Circle retains its alternating left-hand bass/right-hand percussion layout and four manual cardinal L columns. The flat layouts keep their existing mapping. The rhythm preview includes a manual L example alongside its percussion hits.
+These are expressive spatial roles rather than measured frequencies or a claim about the intended instrument. The same 0.70-second release and additive retriggers drive every region. Glass Circle retains its alternating hand layout. Circle Towers has its own front/rear banks, and the two EQ layouts have separate assignments as described above. The rhythm preview includes Space and manual L examples.
 
 ### Mapping analysis and references
 
-For this small HUD, I selected bilateral symmetry so alternating bass keys reshape a centered silhouette. Grouping neighboring bands creates a clear upper-to-lower progression, while narrower accent fields supply detail. The open halo and necklace leave visual space in the center. This is an aesthetic choice for DrumKey; radial visualizers do not prescribe a universal position for each drum or keyboard key.
+The current composition uses broad side weight for D and diagonal thrust for F, so the bass keys have visibly different shapes. Upper/lower percussion crowns add contrast, and the narrow L teeth supply detail without taking a fixed four-column cross. This is an aesthetic choice for DrumKey; radial visualizers do not prescribe a universal position for each drum or keyboard key. Earlier research informed the visual vocabulary:
 
 - [audioMotion's mirror documentation](https://github.com/hvianna/audioMotion-analyzer/blob/master/README.md#mirror-number) describes mirroring the frequency axis and its radial behavior. It informed the shared reflected sweep.
 - [More Lively Audio Visualizer](https://github.com/Bao6879/more-lively-audio-visualizer) supports circle spectra with mirrored segments. A single reflected pair gives DrumKey a balanced silhouette at its small size.
@@ -54,8 +58,20 @@ For this small HUD, I selected bilateral symmetry so alternating bass keys resha
 | Ocean | Deep blue through turquoise with ice-blue highlights. |
 | Ember | Rust, orange and red with warm gold highlights. |
 | Gunmetal | Muted steel blues and pale silver-blue highlights. |
+| Ultraviolet | Saturated violet, orchid and electric purple. |
+| Cyberpunk | Hot pink, purple, cyan and amber. |
+| Acid | Lime, chartreuse, green and a red-orange accent. |
+| Glacier | Ice blue, cool silver and pale cyan. |
+| Rose Quartz | Rose, blush, lilac and warm pearl. |
+| Copper | Copper, bronze, gold and oxidized teal. |
+| Jade | Forest green, jade, sea glass and pale cream. |
+| Monochrome | Graphite through steel and silver-white. |
 
-Colors apply to the main visualizer, background spectrum and border feedback. The three radial layouts blend their key colors across mirrored regions; the Halo fill follows a matching top-to-bottom gradient. Theme and color selections are independent of display, size, overall visibility and background EQ transparency.
+All fifteen color schemes apply to the main visualizer, background spectrum and border feedback. The radial layouts blend key colors across their angular regions; the Halo adds a matching glass gradient. Theme and color selections are independent of display, size, overall visibility and background EQ transparency.
+
+## EQ bass placement and height
+
+D/F columns stay on the left of both foreground EQs. Linear EQ uses solid banks; LED Matrix uses alternating two-column bass clusters. J/K/L stay on the right. For equal input energy, bass rises higher, with a higher maximum: 107 versus 67 points in Linear EQ and sixteen versus ten rows in LED Matrix. The background EQ follows the same left/right assignment and caps repeated J/K/L energy below the bass ceiling. Space supplies the same D/F responses together.
 
 ## Research references
 

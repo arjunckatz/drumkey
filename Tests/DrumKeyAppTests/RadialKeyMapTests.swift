@@ -18,31 +18,26 @@ struct RadialKeyMapTests {
         }
     }
 
-    @Test func bassOccupiesBroadUpperArcsAndAccentsOccupyTheLowerEdge() {
-        func distribution(_ key: DrumKey) -> (centerY: Double, coverage: Int) {
-            let responses = RadialKeyMap.halo.map { ($0.y, $0.level(in: [key: 1])) }
-            let total = responses.reduce(0) { $0 + $1.1 }
-            return (responses.reduce(0) { $0 + $1.0 * $1.1 } / total,
-                    responses.filter { $0.1 > 0.5 }.count)
+    @Test func bassFormsSideJawsAndDiagonalHornsWithSeparateCrowns() {
+        func response(_ key: DrumKey, _ degrees: Double) -> Double {
+            RadialKeyMap.sample(at: degrees * .pi / 180).level(in: [key: 1])
         }
-        let bassD = distribution(.d)
-        let bassF = distribution(.f)
-        let snare = distribution(.j)
-        let tom = distribution(.k)
-        let accent = distribution(.l)
-        #expect(bassD.centerY < -0.6 && bassF.centerY < -0.3)
-        #expect(abs(snare.centerY) < 0.1)
-        #expect(tom.centerY > 0.4 && accent.centerY > 0.8)
-        #expect(bassD.coverage > accent.coverage && bassF.coverage > accent.coverage)
-        #expect(Set(RadialKeyMap.orbits.map(\.primaryKey)) == Set([.d, .f, .j, .k, .l]))
+        #expect(response(.d, 90) == 1 && response(.d, 270) == 1)
+        #expect(response(.d, 0) == 0)
+        #expect(response(.f, 45) == 1 && response(.f, 225) == 1)
+        #expect(response(.f, 90) == 0)
+        #expect(response(.j, 0) == 1 && response(.j, 180) == 0)
+        #expect(response(.k, 180) == 1 && response(.k, 0) == 0)
+        #expect(response(.l, 15) > 0.7 && response(.l, 0) == 0)
+        #expect(response(.d, 90) > response(.d, 87) && response(.d, 90) > response(.d, 93))
     }
 
-    @Test func mixedHitsStayBoundedAndSpaceAccentsTheWholeRim() {
+    @Test func mixedHitsStayBoundedAndSpaceDoesNotInflateUnrelatedRegions() {
         let allKeys = Dictionary(uniqueKeysWithValues: DrumKey.allCases.map { ($0, 1.0) })
         for sample in RadialKeyMap.halo + RadialKeyMap.spectrum + RadialKeyMap.orbits {
             #expect(sample.level(in: [:]) == 0)
             #expect((0...1).contains(sample.level(in: allKeys)))
-            #expect(abs(sample.level(in: [.space: 1]) - 0.55) < 0.000001)
+            #expect(sample.level(in: [.space: 1]) == 0)
         }
     }
 }

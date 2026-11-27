@@ -20,7 +20,7 @@ struct BackgroundEQTests {
     @Test func spectrumSettlesAndResetRemovesStoredEnergy() {
         var eq = BackgroundEQ()
         let idle = eq.levels(at: 0)
-        eq.register(key: .space, at: 1)
+        eq.register(key: .d, at: 1)
         #expect(eq.isAnimating(at: 1.2))
         #expect((eq.levels(at: 1.1).max() ?? 0) > (eq.levels(at: 1.7).max() ?? 1))
         #expect(!eq.isAnimating(at: 2))

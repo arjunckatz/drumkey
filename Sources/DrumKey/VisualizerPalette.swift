@@ -3,8 +3,9 @@ import DrumKeyCore
 
 enum VisualizerColorScheme: String, CaseIterable {
     case classic, aurora, sunset, neon, ocean, ember, gunmetal
+    case ultraviolet, cyberpunk, acid, glacier, roseQuartz, copper, jade, monochrome
 
-    var label: String { rawValue.capitalized }
+    var label: String { self == .roseQuartz ? "Rose Quartz" : rawValue.capitalized }
 
     @MainActor var palette: VisualizerPalette {
         let values: [UInt32]
@@ -22,6 +23,14 @@ enum VisualizerColorScheme: String, CaseIterable {
         case .ocean: values = [0x145C9E, 0x2586B8, 0x32B6C4, 0x75CEC8, 0xA0DCF1, 0xD9F5FF]
         case .ember: values = [0xB64C3C, 0xE17A32, 0xEF502E, 0xA9364F, 0xF2BA5D, 0xFFF0B8]
         case .gunmetal: values = [0x223B4A, 0x3A5E70, 0x527486, 0x7894A2, 0xA8BEC9, 0xD2E0E6]
+        case .ultraviolet: values = [0x6324C9, 0x9A54F4, 0xDF4FDB, 0x6F70F8, 0xF48CCC, 0xEEDAFF]
+        case .cyberpunk: values = [0xF52BAE, 0x793DDE, 0x00B9D1, 0xF1BE20, 0xFA5D37, 0xCAFFFA]
+        case .acid: values = [0x7EB81D, 0xC1D919, 0x2CA76C, 0xD49B17, 0xE45238, 0xF2FFB9]
+        case .glacier: values = [0x3D74A3, 0x7CB7D8, 0x91CCD3, 0xA9BEDD, 0xCAE5EB, 0xF1FCFF]
+        case .roseQuartz: values = [0xB65A83, 0xDA91A7, 0x9B79BD, 0xCCB7D6, 0xD4A788, 0xFBE8E9]
+        case .copper: values = [0x854B35, 0xC2784D, 0xBB955B, 0x5C8E84, 0xE0B77C, 0xF9E8D0]
+        case .jade: values = [0x276B50, 0x4C9C72, 0x71BFA9, 0x5F8B9C, 0xB6C47A, 0xE9F4D4]
+        case .monochrome: values = [0x354047, 0x626C73, 0x858E95, 0xA2A8AE, 0xCAD0D4, 0xF7FAFC]
         }
         let colors = values.map(Self.color)
         return VisualizerPalette(
@@ -48,6 +57,7 @@ struct VisualizerPalette {
     let haloColors: [NSColor]
     let radialColors: [NSColor]
     let orbitColors: [NSColor]
+    let bladeColors: [NSColor]
     let radialGradient: NSGradient?
 
     init(colors: [NSColor], border: NSColor, spectrum: [NSColor], locations: [CGFloat]) {
@@ -58,14 +68,16 @@ struct VisualizerPalette {
             NSGradient(colors: spectrum, atLocations: points.baseAddress, colorSpace: .sRGB)
         }
         let gradient = self.spectrum
-        ledColors = (0..<12).map { gradient?.interpolatedColor(atLocation: CGFloat($0) / 11) ?? colors[0] }
+        ledColors = (0..<16).map { gradient?.interpolatedColor(atLocation: CGFloat($0) / 15) ?? colors[0] }
         let keyColors = self.keyColors
         haloColors = Self.radialColors(for: RadialKeyMap.halo, keyColors: keyColors)
         radialColors = Self.radialColors(for: RadialKeyMap.spectrum, keyColors: keyColors)
         orbitColors = Self.radialColors(for: RadialKeyMap.orbits, keyColors: keyColors)
+        bladeColors = Self.radialColors(for: RadialKeyMap.blades, keyColors: keyColors)
         let radialStops: [CGFloat] = [0, 0.18, 0.50, 0.82, 1]
         radialGradient = radialStops.withUnsafeBufferPointer { points in
-            NSGradient(colors: Array(colors.prefix(5)), atLocations: points.baseAddress, colorSpace: .sRGB)
+            NSGradient(colors: [colors[2], colors[1], colors[0], colors[1], colors[3]],
+                       atLocations: points.baseAddress, colorSpace: .sRGB)
         }
     }
 

@@ -84,10 +84,12 @@ final class OverlayView: NSView {
     func register(hit: DrumHit, snapshot: RhythmSnapshot) {
         self.snapshot = snapshot
         let now = ProcessInfo.processInfo.systemUptime
-        dynamics.register(key: hit.key, at: now)
-        bassChordFlash.register(hit, deliveredAt: now)
-        percussionBorderEQ.register(hit, deliveredAt: now)
-        backgroundEQ.register(key: hit.key, at: now)
+        for visualHit in VisualHitRouter.hits(for: hit) {
+            dynamics.register(key: visualHit.key, at: now)
+            bassChordFlash.register(visualHit, deliveredAt: now)
+            percussionBorderEQ.register(visualHit, deliveredAt: now)
+            backgroundEQ.register(key: visualHit.key, at: now)
+        }
         updateStatusLabels()
         updateAccessibility()
         needsDisplay = true
@@ -273,7 +275,11 @@ final class OverlayView: NSView {
             ThemeRenderer(layout: stage, levels: dynamics.levels(at: ProcessInfo.processInfo.systemUptime),
                           palette: palette, reduceMotion: NSWorkspace.shared.accessibilityDisplayShouldReduceMotion)
                 .draw(visualizerTheme)
-            if visualizerTheme.isCircular { drawBeatMarkers(around: center) }
+            if visualizerTheme.isCircular {
+                let markerCenter = visualizerTheme == .circleTowers
+                    ? NSPoint(x: center.x, y: center.y + 17 * stage.scale) : center
+                drawBeatMarkers(around: markerCenter, radius: visualizerTheme == .razorBloom ? 20 : 31)
+            }
             return
         }
 
@@ -306,11 +312,11 @@ final class OverlayView: NSView {
         }
     }
 
-    private func drawBeatMarkers(around center: NSPoint) {
+    private func drawBeatMarkers(around center: NSPoint, radius: CGFloat = 37) {
         let beats = snapshot.meter?.beatsPerBar ?? 4
         for index in 0..<beats {
             let angle = -Double.pi / 2 + Double(index) * 2 * Double.pi / Double(beats)
-            let point = NSPoint(x: center.x + cos(angle) * 37 * stage.scale, y: center.y + sin(angle) * 37 * stage.scale)
+            let point = NSPoint(x: center.x + cos(angle) * radius * stage.scale, y: center.y + sin(angle) * radius * stage.scale)
             let isCurrent = snapshot.beatInBar == index + 1
             let diameter: CGFloat = (isCurrent ? 4 : 2.5) * stage.scale
             NSColor.labelColor.withAlphaComponent(isCurrent ? 0.65 : 0.18).setFill()
